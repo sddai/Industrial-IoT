@@ -7,8 +7,9 @@
     /// <summary>
     /// Module that logs Autofac resolving into console
     /// </summary>
-    internal class LogResolvingModule : af.Module {
+    public class LogResolvingModule : af.Module {
 
+        /// <inheritdoc/>
         protected override void AttachToComponentRegistration(
             afc.Registration.IComponentRegistryBuilder componentRegistry, 
             afc.IComponentRegistration registration) {

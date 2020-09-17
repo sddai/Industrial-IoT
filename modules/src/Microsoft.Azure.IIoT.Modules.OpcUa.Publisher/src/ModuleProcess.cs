@@ -30,6 +30,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Extensions.Configuration;
     using Serilog;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Core.Autofac;
 
     /// <summary>
     /// Publisher module

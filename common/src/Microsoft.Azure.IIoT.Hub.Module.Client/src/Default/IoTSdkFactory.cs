@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Threading;
     using System.Diagnostics.Tracing;
     using Prometheus;
+    using System.Diagnostics;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -129,6 +130,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 _transport = config.Transport;
             }
             _timeout = TimeSpan.FromMinutes(5);
+
+            _logger.Information("#42# Create IoTSdkFactory stacktrace: {Callstack}", Environment.StackTrace);
         }
 
         /// <inheritdoc/>
@@ -205,9 +208,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     throw new InvalidConfigurationException(
                         "No connection string for device client specified.");
                 }
+
+                _logger.Information("Create IoT Hub Device Client for DeviceId: {DeviceId}, HostName: {HostName}, GatewayHostName: {GatewayHostName}",
+                    _cs.DeviceId,
+                    _cs.HostName,
+                    _cs.GatewayHostName);
+                _logger.Information("Stacktrace for creating Device Client {StackTrace}", Environment.StackTrace.ToString());
                 return DeviceClientAdapter.CreateAsync(product, _cs, DeviceId,
                     transportSetting, _timeout, RetryPolicy, onError, _logger);
             }
+
+            _logger.Information("Create IoT Hub Module Client for DeviceId: {DeviceId}, HostName: {HostName}, GatewayHostName: {GatewayHostName}, ModuleId: {ModuleId}",
+                    _cs.DeviceId,
+                    _cs.HostName,
+                    _cs.GatewayHostName,
+                    _cs.ModuleId);
+            _logger.Information("Stacktrace for creating Module Client {StackTrace}", Environment.StackTrace.ToString());
             return ModuleClientAdapter.CreateAsync(product, _cs, DeviceId, ModuleId,
                 transportSetting, _timeout, RetryPolicy, onError, _logger);
         }
@@ -573,7 +589,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 ConnectionStatusChangeReason reason) {
 
                 if (status == ConnectionStatus.Connected) {
-                    logger.Information("{counter}: Device {deviceId} reconnected " +
+                    logger.Information("{counter}: Device {deviceId} (re)connected " +
                         "due to {reason}.", _reconnectCounter, deviceId, reason);
                     kReconnectionStatus.WithLabels(deviceId, DateTime.UtcNow.ToString()).Set(_reconnectCounter);
                     _reconnectCounter++;

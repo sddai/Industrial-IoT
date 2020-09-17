@@ -206,6 +206,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
 
+            builder.RegisterModule<LogResolvingModule>();
+
             return builder.Build();
         }
 

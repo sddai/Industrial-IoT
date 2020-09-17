@@ -25,18 +25,15 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// <param name="demandMatcher"></param>
         /// <param name="jobOrchestratorConfig"></param>
         /// <param name="jobEventHandler"></param>
-        /// <param name="jobService"></param>
         public DefaultJobOrchestrator(IJobRepository jobRepository,
             IWorkerRepository workerRepository, IDemandMatcher demandMatcher,
             IJobOrchestratorConfig jobOrchestratorConfig,
-            IJobEventHandler jobEventHandler,
-            IJobService jobService) {
+            IJobEventHandler jobEventHandler) {
             _jobRepository = jobRepository;
             _demandMatcher = demandMatcher;
             _workerRepository = workerRepository;
             _jobOrchestratorConfig = jobOrchestratorConfig;
             _jobEventHandler = jobEventHandler;
-            _jobService = jobService;
         }
 
         /// <inheritdoc/>
@@ -66,7 +63,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                                 // Try again on the current value in the database
                                 jobProcessInstruction = CalculateInstructions(existingJob, workerId);
                                 if (jobProcessInstruction != null) {
-                                    _jobEventHandler.OnJobAssignmentAsync(_jobService, jobProcessInstruction.Job, workerId).ConfigureAwait(false);
+                                    _jobEventHandler.OnJobAssignmentAsync(jobProcessInstruction.Job, workerId).ConfigureAwait(false);
                                 }
                                 return Task.FromResult(jobProcessInstruction != null);
                             }, ct);
@@ -213,6 +210,5 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         private readonly IWorkerRepository _workerRepository;
         private readonly IJobRepository _jobRepository;
         private readonly IJobEventHandler _jobEventHandler;
-        private readonly IJobService _jobService;
     }
 }

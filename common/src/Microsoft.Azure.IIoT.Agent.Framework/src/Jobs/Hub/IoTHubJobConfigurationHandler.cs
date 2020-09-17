@@ -28,12 +28,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         }
 
         /// <inheritdoc/>
-        public Task OnJobCreatedAsync(IJobService manager, JobInfoModel job) {
+        public Task OnJobCreatedAsync(JobInfoModel job) {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public async Task OnJobCreatingAsync(IJobService manager, JobInfoModel job) {
+        public async Task OnJobCreatingAsync(JobInfoModel job) {
             if (job.JobConfiguration?.IsObject != true) {
                 return;
             }
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         }
 
         /// <inheritdoc/>
-        public async Task OnJobAssignmentAsync(IJobService manager, JobInfoModel job, string workerId) {
+        public async Task OnJobAssignmentAsync(JobInfoModel job, string workerId) {
             if (job.JobConfiguration?.IsObject != true) {
                 return;
             }
@@ -92,12 +92,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         }
 
         /// <inheritdoc/>
-        public Task OnJobDeletingAsync(IJobService manager, JobInfoModel job) {
+        public Task OnJobDeletingAsync(JobInfoModel job) {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public async Task OnJobDeletedAsync(IJobService manager, JobInfoModel job) {
+        public async Task OnJobDeletedAsync(JobInfoModel job) {
             var jobDeviceId = GetJobDeviceId(job);
             try {
                 await _ioTHubTwinServices.DeleteAsync(jobDeviceId);

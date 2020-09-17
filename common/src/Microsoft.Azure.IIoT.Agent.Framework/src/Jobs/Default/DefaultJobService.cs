@@ -31,19 +31,19 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
             SetDefaultValues(model);
             foreach (var jreh in _jobRepositoryEventHandlers) {
-                await jreh.OnJobCreatingAsync(this, model);
+                await jreh.OnJobCreatingAsync(model);
             }
             try {
                 model = await _jobRepository.AddAsync(model, ct);
             }
             catch {
                 foreach (var jreh in _jobRepositoryEventHandlers) {
-                    await jreh.OnJobDeletedAsync(this, model);
+                    await jreh.OnJobDeletedAsync(model);
                 }
                 throw;
             }
             foreach (var jreh in _jobRepositoryEventHandlers) {
-                await jreh.OnJobCreatedAsync(this, model);
+                await jreh.OnJobCreatedAsync(model);
             }
             return model;
         }
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                     }
 
                     foreach (var jreh in _jobRepositoryEventHandlers) {
-                        await jreh.OnJobCreatingAsync(this, model);
+                        await jreh.OnJobCreatingAsync(model);
                     }
                     return model;
                 }
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
             if (created && job != null) {
                 foreach (var jreh in _jobRepositoryEventHandlers) {
-                    await jreh.OnJobCreatedAsync(this, job);
+                    await jreh.OnJobCreatedAsync(job);
                 }
             }
             return job;
@@ -117,14 +117,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         public async Task DeleteJobAsync(string jobId, CancellationToken ct) {
             var job = await _jobRepository.DeleteAsync(jobId, async model => {
                 foreach (var jreh in _jobRepositoryEventHandlers) {
-                    await jreh.OnJobDeletingAsync(this, model);
+                    await jreh.OnJobDeletingAsync(model);
                 }
                 return true;
             }, ct);
             if (job != null) {
                 // Success
                 foreach (var jreh in _jobRepositoryEventHandlers) {
-                    await jreh.OnJobDeletedAsync(this, job);
+                    await jreh.OnJobDeletedAsync(job);
                 }
             }
         }

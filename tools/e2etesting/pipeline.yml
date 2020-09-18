@@ -9,6 +9,21 @@ variables:
   value: "automatedtesting"
 
 jobs:
+- job: executefunctionaltests
+  displayName: "Execute Functional Tests"
+  dependsOn: deploy
+  condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
+  pool:
+    name: 'Azure-IoT-Manufacturing'
+  steps:
+    - task: DotNetCoreCLI@2
+      displayName: 'Run unit tests - $(buildConfiguration)'
+      inputs:
+        command: 'test'
+        arguments: ''
+        publishTestResults: true
+        projects: './services/src/MicroserviceFunctionalTests/MicroserviceFunctionalTests.csproj'
+
 - job: deploy
   condition: ne(variables['UseExisting'], true)
   displayName: 'Prepare and run IAI'

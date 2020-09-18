@@ -69,6 +69,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger.Debug("Disposing {name}", Name);
             _diagnosticsOutputTimer?.Dispose();
             _batchTriggerIntervalTimer?.Dispose();
+            _encodingBlock?.Complete();
+            _batchDataSetMessageBlock?.Complete();
+            _batchNetworkMessageBlock?.Complete();
+            _sinkBlock?.Complete();
+            
         }
 
         /// <inheritdoc/>

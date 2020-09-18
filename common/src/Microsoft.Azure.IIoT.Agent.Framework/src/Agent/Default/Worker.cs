@@ -172,10 +172,18 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     ct.ThrowIfCancellationRequested();
 
                     _logger.Debug("Try querying available job...");
-                    var jobProcessInstruction = await Try.Async(() =>
-                        _jobManagerConnector.GetAvailableJobAsync(WorkerId, new JobRequestModel {
+
+                    JobProcessingInstructionModel jobProcessInstruction;
+                    if (_jobContinuationInstruction != null) {
+                        jobProcessInstruction = _jobContinuationInstruction;
+                        _jobContinuationInstruction = null;
+                        _logger.Information("Use updated instructions from previous job");
+                    } else {
+                        jobProcessInstruction = await _jobManagerConnector.GetAvailableJobAsync(WorkerId, new JobRequestModel {
                             Capabilities = _agentConfigProvider.Config.Capabilities
-                        }, ct));
+                        });
+                        _logger.Information("Use new job instruction returned from job orchestator");
+                    }
 
                     ct.ThrowIfCancellationRequested();
                     if (jobProcessInstruction?.Job?.JobConfiguration == null ||
@@ -216,28 +224,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     WorkerId, jobProcessInstruction.Job.Id, jobProcessInstruction.ProcessMode);
 
                 // Execute processor
-                while (true) {
-                    _jobProcess = null;
-                    ct.ThrowIfCancellationRequested();
-                    using (_jobProcess = new JobProcess(this, jobProcessInstruction,
-                        _lifetimeScope, _logger)) {
-                        await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
-                    }
-
-                    // Check if the job is to be continued with new configuration settings
-                    if (_jobProcess.JobContinuation == null) {
-                        _jobProcess = null;
-                        break;
-                    }
-
-                    jobProcessInstruction = _jobProcess.JobContinuation;
-                    if (jobProcessInstruction?.Job?.JobConfiguration == null ||
-                        jobProcessInstruction?.ProcessMode == null) {
-                        _logger.Information("Job continuation invalid, continue listening...");
-                        _jobProcess = null;
-                        break;
-                    }
-                    _logger.Information("Processing job continuation...");
+                _jobProcess = null;
+                ct.ThrowIfCancellationRequested();
+                using (_jobProcess = new JobProcess(this, jobProcessInstruction,
+                    _lifetimeScope, _logger)) {
+                    await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
                 }
             }
             catch (OperationCanceledException) {
@@ -257,9 +248,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// Worker job processing process
         /// </summary>
         private class JobProcess : IDisposable {
-
-            /// <inheritdoc/>
-            public JobProcessingInstructionModel JobContinuation { get; private set; }
 
             /// <inheritdoc/>
             public WorkerStatus Status { get; private set; } = WorkerStatus.Stopped;
@@ -351,10 +339,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// </summary>
             /// <returns></returns>
             private async Task CleanupAsync() {
-                if (JobContinuation != null) {
-                    // Continuation - do not update job state but continue
-                    return;
-                }
+                
                 try {
                     if (_cancellationTokenSource.IsCancellationRequested) {
                         _logger.Debug("Update cancellation status for {job}.", Job.Id);
@@ -401,8 +386,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     }, ct);
 
                 // Check for updated job
-                if (result.UpdatedJob != null && JobContinuation == null) {
-                    JobContinuation = result.UpdatedJob;
+                if (result.UpdatedJob != null) {
+                    _outer._jobContinuationInstruction = result.UpdatedJob;
+
                     // Cancel
                     if (!_cancellationTokenSource.IsCancellationRequested) {
                         _logger.Debug("Received job update request - continue ...");
@@ -512,5 +498,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             new CounterConfiguration {
                 LabelNames = new[] { "agent", "source", "type", "message", "stacktrace", "custom_message" }
             });
+        private JobProcessingInstructionModel _jobContinuationInstruction;
     }
 }

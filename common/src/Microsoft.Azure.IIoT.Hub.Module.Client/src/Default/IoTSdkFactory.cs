@@ -209,21 +209,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                         "No connection string for device client specified.");
                 }
 
-                _logger.Information("Create IoT Hub Device Client for DeviceId: {DeviceId}, HostName: {HostName}, GatewayHostName: {GatewayHostName}",
-                    _cs.DeviceId,
-                    _cs.HostName,
-                    _cs.GatewayHostName);
-                _logger.Information("Stacktrace for creating Device Client {StackTrace}", Environment.StackTrace.ToString());
                 return DeviceClientAdapter.CreateAsync(product, _cs, DeviceId,
                     transportSetting, _timeout, RetryPolicy, onError, _logger);
             }
 
-            _logger.Information("Create IoT Hub Module Client for DeviceId: {DeviceId}, HostName: {HostName}, GatewayHostName: {GatewayHostName}, ModuleId: {ModuleId}",
-                    _cs.DeviceId,
-                    _cs.HostName,
-                    _cs.GatewayHostName,
-                    _cs.ModuleId);
-            _logger.Information("Stacktrace for creating Module Client {StackTrace}", Environment.StackTrace.ToString());
             return ModuleClientAdapter.CreateAsync(product, _cs, DeviceId, ModuleId,
                 transportSetting, _timeout, RetryPolicy, onError, _logger);
         }
@@ -272,6 +261,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 else {
                     logger.Information("Running outside iotedge context.");
                 }
+
+                logger.Information("Create IoT Hub Module Client for DeviceId: {DeviceId}, HostName: {HostName}, GatewayHostName: {GatewayHostName}, ModuleId: {ModuleId}",
+                    cs?.DeviceId ?? deviceId,
+                    cs?.HostName ?? string.Empty,
+                    cs?.GatewayHostName ?? string.Empty,
+                    cs?.ModuleId ?? moduleId);
+                logger.Information("Stacktrace for creating Module Client {StackTrace}", Environment.StackTrace.ToString());
 
                 var client = await CreateAsync(cs, transportSetting);
                 var adapter = new ModuleClientAdapter(client);
@@ -476,6 +472,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 IotHubConnectionStringBuilder cs, string deviceId,
                 ITransportSettings transportSetting, TimeSpan timeout,
                 IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
+                
+                logger.Information("Create IoT Hub Device Client for DeviceId: {DeviceId}, HostName: {HostName}, GatewayHostName: {GatewayHostName}",
+                    cs?.DeviceId ?? deviceId,
+                    cs?.HostName ?? string.Empty,
+                    cs?.GatewayHostName ?? string.Empty);
+                logger.Information("Stacktrace for creating Device Client {StackTrace}", Environment.StackTrace.ToString());
+                
                 var client = Create(cs, transportSetting);
                 var adapter = new DeviceClientAdapter(client);
 

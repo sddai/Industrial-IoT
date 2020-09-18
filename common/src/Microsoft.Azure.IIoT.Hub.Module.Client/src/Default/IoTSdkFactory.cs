@@ -131,7 +131,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
             _timeout = TimeSpan.FromMinutes(5);
 
-            _logger.Information("#42# Create IoTSdkFactory stacktrace: {Callstack}", Environment.StackTrace);
+            _logger.Verbose("Create IoTSdkFactory stacktrace: {Callstack}", Environment.StackTrace);
         }
 
         /// <inheritdoc/>
@@ -267,7 +267,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     cs?.HostName ?? string.Empty,
                     cs?.GatewayHostName ?? string.Empty,
                     cs?.ModuleId ?? moduleId);
-                logger.Information("Stacktrace for creating Module Client {StackTrace}", Environment.StackTrace.ToString());
+                logger.Verbose("Stacktrace for creating Module Client {StackTrace}", Environment.StackTrace.ToString());
 
                 var client = await CreateAsync(cs, transportSetting);
                 var adapter = new ModuleClientAdapter(client);
@@ -477,7 +477,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     cs?.DeviceId ?? deviceId,
                     cs?.HostName ?? string.Empty,
                     cs?.GatewayHostName ?? string.Empty);
-                logger.Information("Stacktrace for creating Device Client {StackTrace}", Environment.StackTrace.ToString());
+                logger.Verbose("Stacktrace for creating Device Client {StackTrace}", Environment.StackTrace.ToString());
                 
                 var client = Create(cs, transportSetting);
                 var adapter = new DeviceClientAdapter(client);

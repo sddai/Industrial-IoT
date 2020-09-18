@@ -46,6 +46,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                     };
                     await _ioTHubTwinServices.CreateOrUpdateAsync(deviceTwin, true);
                 }
+                var cs = await _ioTHubTwinServices.GetConnectionStringAsync(deviceTwin.Id);
+                job.JobConfiguration[TwinProperties.ConnectionString].AssignValue(cs.ToString());
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while creating IoT Device.");

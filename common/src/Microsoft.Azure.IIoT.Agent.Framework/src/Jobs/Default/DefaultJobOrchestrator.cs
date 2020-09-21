@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -25,15 +26,18 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// <param name="demandMatcher"></param>
         /// <param name="jobOrchestratorConfig"></param>
         /// <param name="jobEventHandler"></param>
+        /// <param name="logger"></param>
         public DefaultJobOrchestrator(IJobRepository jobRepository,
             IWorkerRepository workerRepository, IDemandMatcher demandMatcher,
             IJobOrchestratorConfig jobOrchestratorConfig,
-            IJobEventHandler jobEventHandler) {
-            _jobRepository = jobRepository;
-            _demandMatcher = demandMatcher;
+            IJobEventHandler jobEventHandler,
+            ILogger logger) {
+            _jobRepository = jobRepository ?? throw new ArgumentNullException(nameof(jobRepository));
+            _demandMatcher = demandMatcher ?? throw new ArgumentNullException(nameof(demandMatcher));
             _workerRepository = workerRepository;
-            _jobOrchestratorConfig = jobOrchestratorConfig;
-            _jobEventHandler = jobEventHandler;
+            _jobOrchestratorConfig = jobOrchestratorConfig ?? throw new ArgumentNullException(nameof(jobOrchestratorConfig));
+            _jobEventHandler = jobEventHandler ?? throw new ArgumentNullException(nameof(jobEventHandler));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -65,12 +69,27 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                                 if (jobProcessInstruction != null) {
                                     _jobEventHandler.OnJobAssignmentAsync(jobProcessInstruction.Job, workerId).ConfigureAwait(false);
                                 }
-                                return Task.FromResult(jobProcessInstruction != null);
+
+                                var jobInstructionExist = jobProcessInstruction != null;
+                                _logger.Information("Update Job Description JobId: {JobId}, ExistingJob:{ExistingJob}, JobProcessinstructions:{jobProcessInstruction}, WorkerId: {WorkerId}, PersistChanges:{PersistChanges}",
+                                    job.Id,
+                                    existingJob.JobConfiguration,
+                                    jobProcessInstruction,
+                                    workerId,
+                                    !jobInstructionExist);
+
+                                return Task.FromResult(jobInstructionExist);
                             }, ct);
                             return jobProcessInstruction;
                         }
-                        catch (ResourceNotFoundException) {
-                            continue; // Job deleted while updating, continue to next job
+                        catch (ResourceNotFoundException ex) {
+                            _logger.Information("Job deleted while updating, continue to next job JobId:{JobId}, WorkerId:{WorkerId}",
+                                job.Id,
+                                workerId);
+                            _logger.Verbose("Message: {ExceptionMessage}, Stack: {ExceptionStackTrace}",
+                                ex.Message,
+                                ex.StackTrace);
+                            continue; 
                         }
                     }
                 }
@@ -210,5 +229,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         private readonly IWorkerRepository _workerRepository;
         private readonly IJobRepository _jobRepository;
         private readonly IJobEventHandler _jobEventHandler;
+        private readonly ILogger _logger;
     }
 }

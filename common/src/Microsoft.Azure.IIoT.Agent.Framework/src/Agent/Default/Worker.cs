@@ -182,7 +182,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         jobProcessInstruction = await _jobManagerConnector.GetAvailableJobAsync(WorkerId, new JobRequestModel {
                             Capabilities = _agentConfigProvider.Config.Capabilities
                         });
-                        _logger.Information("Use new job instruction returned from job orchestator");
+                        
+                        _logger.Verbose("ID{WorkerID}: Status - {WorkerStatus}: Use new job instruction returned from job orchestator", WorkerId, Status);
                     }
 
                     ct.ThrowIfCancellationRequested();

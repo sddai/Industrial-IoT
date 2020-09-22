@@ -176,6 +176,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                     existingJob.LifetimeData.ProcessingStatus[heartbeat.Worker.WorkerId].ProcessMode =
                         ProcessMode.Active;
                 }
+
+                _logger.Information("Update Job Description JobId: {JobId}, JobProcessinstructions:{jobProcessInstruction}, PersistChanges:{PersistChanges}",
+                                    existingJob.Id,
+                                    existingJob.JobConfiguration,
+                                    true);
+
                 return Task.FromResult(true);
             }, ct);
 

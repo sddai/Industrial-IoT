@@ -32,6 +32,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Prometheus;
     using System.Collections.Generic;
     using System.Linq;
+    using Diagnostics.Debug.Default;
 
     /// <summary>
     /// Publisher module
@@ -99,6 +100,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var identity = hostScope.Resolve<IIdentity>();
                     ISessionManager sessionManager = null;
                     var server = new MetricServer(port: kPublisherPrometheusPort);
+                    var listener = new OpcUaTraceListener(logger);
+                    Trace.Listeners.Add(listener);
+
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.Information("Starting module OpcPublisher version {version}.", version);

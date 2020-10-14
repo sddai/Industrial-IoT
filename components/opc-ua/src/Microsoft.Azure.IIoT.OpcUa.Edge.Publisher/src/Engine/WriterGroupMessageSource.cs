@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Timers;
+    using Serilog.Events;
     using Timer = System.Timers.Timer;
 
     /// <summary>
@@ -274,6 +275,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Writer = _dataSetWriter,
                         WriterGroup = _outer._writerGroup
                     };
+
+                    if (_outer._logger.IsEnabled(LogEventLevel.Verbose))
+                    {
+                        _outer._logger.Verbose("OPC UA Subscription {SessionId} received notification with {NumberOfValueChanges} value changes",
+                            message.SubscriptionId,
+                            message.Notifications.Count());
+                    }
+
                     lock (_lock) {
                         if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
                             _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {

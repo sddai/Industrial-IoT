@@ -100,8 +100,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var identity = hostScope.Resolve<IIdentity>();
                     ISessionManager sessionManager = null;
                     var server = new MetricServer(port: kPublisherPrometheusPort);
-                    var listener = new OpcUaTraceListener(logger);
-                    Trace.Listeners.Add(listener);
 
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
